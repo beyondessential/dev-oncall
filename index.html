@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Which dev should I call?</title>
+<style>
+  :root {
+    --navy: #0b2447; --navy2: #123a6b; --cyan: #19a7ce; --cyan-soft: #d8f1f8;
+    --bg: #f4f7fa; --card: #ffffff; --ink: #1c2733; --muted: #5b6b7b;
+    --line: #dde5ec; --good: #1a7f4b; --amber: #b26a00; --night: #5b45b0;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: "Segoe UI", -apple-system, "Helvetica Neue", Arial, sans-serif; background: var(--bg); color: var(--ink); line-height: 1.45; padding: 24px 16px 48px; }
+  .wrap { max-width: 880px; margin: 0 auto; }
+  header { background: var(--navy); color: #fff; border-radius: 14px; padding: 22px 26px 14px; margin-bottom: 18px; }
+  header h1 { font-size: 1.5rem; font-weight: 650; }
+  header p { color: #bcd2e8; margin-top: 4px; font-size: 0.95rem; }
+  .tabs { display: flex; gap: 6px; margin-top: 14px; }
+  .tabs button { font-size: 0.95rem; padding: 8px 20px; border: 0; border-radius: 8px 8px 0 0; cursor: pointer; background: var(--navy2); color: #bcd2e8; }
+  .tabs button.active { background: var(--bg); color: var(--navy); font-weight: 650; }
+  .srcbadge { float: right; font-size: 0.78rem; padding: 4px 12px; border-radius: 999px; margin-top: 2px; }
+  .srcbadge.live { background: #16324f; color: #7fe3a8; }
+  .srcbadge.snap { background: #16324f; color: #ffd27f; }
+  .clocks { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin-bottom: 18px; }
+  .clock { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 10px 14px; }
+  .clock .place { font-size: 0.78rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; }
+  .clock .time { font-size: 1.25rem; font-weight: 650; font-variant-numeric: tabular-nums; }
+  .clock .day { font-size: 0.82rem; color: var(--muted); }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 20px 24px; margin-bottom: 18px; }
+  .card h2 { font-size: 1.02rem; margin-bottom: 10px; color: var(--navy); }
+  .topic-row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+  .topic-row button { font-size: 0.95rem; padding: 8px 18px; border-radius: 999px; border: 1.5px solid var(--line); background: #fff; cursor: pointer; color: var(--ink); }
+  .topic-row button.sel { background: var(--navy); border-color: var(--navy); color: #fff; font-weight: 600; }
+  .hint { font-size: 0.85rem; color: var(--muted); margin-top: 8px; }
+  .hint a, .card a { color: var(--cyan); }
+  .sec-row { margin-top: 12px; font-size: 0.9rem; color: var(--muted); display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  .sec-row input { padding: 6px 10px; border: 1px solid var(--line); border-radius: 8px; font-size: 0.9rem; width: 200px; }
+  #verdict { border: 2px solid var(--cyan); }
+  .who { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+  .who .name { font-size: 2rem; font-weight: 700; color: var(--navy); }
+  .badge { display: inline-block; font-size: 0.78rem; font-weight: 600; padding: 3px 10px; border-radius: 999px; }
+  .badge.day   { background: #e3f6ec; color: var(--good); }
+  .badge.night { background: #ece7fb; color: var(--night); }
+  .override-note { margin-top: 8px; font-size: 0.9rem; color: var(--amber); background: #fdf3e3; border-radius: 8px; padding: 8px 12px; }
+  .times-line { margin-top: 8px; font-size: 0.92rem; color: var(--muted); }
+  .firstaction { margin-top: 14px; background: var(--cyan-soft); border-radius: 10px; padding: 14px 16px; font-size: 1.08rem; }
+  .firstaction b { color: var(--navy); }
+  ol.ladder { margin: 12px 0 0 22px; }
+  ol.ladder li { padding: 5px 0; font-size: 0.98rem; }
+  ol.ladder li::marker { color: var(--cyan); font-weight: 700; }
+  details { margin-top: 10px; }
+  details summary { cursor: pointer; color: var(--muted); font-size: 0.9rem; padding: 4px 0; }
+  .alt { border-left: 3px solid var(--line); padding-left: 14px; margin: 10px 0; }
+  .alt h3 { font-size: 0.92rem; color: var(--muted); font-weight: 600; }
+  .alt ol { margin: 6px 0 0 20px; font-size: 0.9rem; color: var(--muted); }
+  table.roster { width: 100%; border-collapse: collapse; font-size: 0.94rem; }
+  table.roster th { text-align: left; padding: 8px 12px; color: var(--muted); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.04em; border-bottom: 2px solid var(--line); }
+  table.roster td { padding: 8px 12px; border-bottom: 1px solid var(--line); }
+  table.roster tr.now { background: var(--cyan-soft); font-weight: 650; }
+  table.roster tr.now td:first-child::after { content: " ← this week"; color: var(--cyan); font-size: 0.8rem; }
+  table.roster tr.past td { color: var(--muted); }
+  .status-line { font-size: 0.88rem; margin-bottom: 12px; padding: 8px 12px; border-radius: 8px; }
+  .status-line.live { background: #e3f6ec; color: var(--good); }
+  .status-line.snap { background: #fdf3e3; color: var(--amber); }
+  footer { font-size: 0.82rem; color: var(--muted); max-width: 880px; margin: 0 auto; padding: 0 6px; }
+  footer ul { margin: 6px 0 0 18px; }
+  footer li { margin-bottom: 4px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <span class="srcbadge snap" id="srcBadge">roster: built-in snapshot</span>
+    <h1>Which dev should I call?</h1>
+    <p>Tamanu support &middot; on-call escalation router &middot; updates live every second</p>
+    <div class="tabs">
+      <button id="tabRouter" class="active">Who do I call?</button>
+      <button id="tabRoster">Roster</button>
+    </div>
+  </header>
+
+  <div id="routerView">
+    <div class="clocks" id="clocks"></div>
+
+    <div class="card">
+      <h2>1 &middot; Who does the <a href="https://bes-international.slack.com/archives/C022N48Q3JQ">#tamanu-support</a> channel topic list as primary?</h2>
+      <div class="topic-row" id="topicButtons"></div>
+      <p class="hint" id="rosterLine"></p>
+      <p class="hint">This week's primary from the roster is pre-selected — but the channel topic is authoritative, so if it says someone else, click their name.</p>
+      <div class="sec-row">
+        <label for="secondary">Secondary on call:</label>
+        <input id="secondary" type="text" placeholder="auto — from roster">
+        <span class="hint" id="secondaryHint" style="margin-top:0"></span>
+      </div>
+    </div>
+
+    <div class="card" id="verdict">
+      <h2>2 &middot; Right now you should contact</h2>
+      <div class="who"><span class="name" id="primaryName">—</span><span id="statusBadge"></span></div>
+      <div class="override-note" id="overrideNote" style="display:none"></div>
+      <div class="times-line" id="timesLine"></div>
+      <div class="firstaction" id="firstAction"></div>
+      <ol class="ladder" id="ladder"></ol>
+      <details><summary>Show the other two escalation ladders (not active right now)</summary><div id="altLadders"></div></details>
+    </div>
+  </div>
+
+  <div id="rosterView" style="display:none">
+    <div class="card">
+      <h2>On-call roster &middot; week by week</h2>
+      <div class="status-line snap" id="rosterStatus">Loading…</div>
+      <table class="roster">
+        <thead><tr><th>Week commencing (NZ Monday)</th><th>Primary dev</th><th>Secondary dev</th></tr></thead>
+        <tbody id="rosterBody"></tbody>
+      </table>
+      <p class="hint">Maintained in the <a href="https://docs.google.com/spreadsheets/d/1uJyy3Aeo1KpCGr1Bs_HVrH_btKUrcaXI/edit?gid=650344370#gid=650344370" id="sheetLink">Google Sheet</a> (Roster tab, Primary Dev / Secondary Dev rows). When live loading works, edits there appear here on the next page refresh — no need to touch this page.</p>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <b>How this page decides</b> — the decision tree from the support process, codified:
+  <ul>
+    <li><b>Daniel override:</b> if the topic says Daniel but it's outside 9:00am–5:30pm NZ time, the after-hours dev covers. Nights belong to the day they began (2am Wednesday is still Tuesday night): Monday/Tuesday night &rarr; Rohan; any other night, including all weekend &rarr; Edwin.</li>
+    <li><b>Ladder A (in hours):</b> 9:00am–5:30pm in the primary dev's local timezone.</li>
+    <li><b>Ladder B (primary's night, Venezuela awake):</b> out of hours for the primary and the Caracas clock reads 9:00am or later &mdash; go through Emilio first.</li>
+    <li><b>Ladder C (night for everyone):</b> out of hours for the primary and before 9:00am in Caracas.</li>
+    <li>"Double call" = phone twice in a row so the second call breaks through do-not-disturb.</li>
+    <li>Timezones: Daniel, Edwin, F&eacute;lix &amp; Jasper — Auckland; Rohan &amp; Chris — Sydney; Emilio — Caracas. DST is handled automatically. The Daniel after-hours override only applies when Daniel is primary.</li>
+    <li><b>Roster source:</b> the page fetches the Google Sheet live on every load (needs the sheet shared as "anyone with the link can view" and saved as a native Google Sheet). If that fails, it falls back to a snapshot baked into this page (weeks of 3 Aug 2026 &ndash; 7 Feb 2028) and says so in the badge at the top.</li>
+  </ul>
+</footer>
+
+<script>
+"use strict";
+var TZ = { Daniel: "Pacific/Auckland", Rohan: "Australia/Sydney", Edwin: "Pacific/Auckland", Emilio: "America/Caracas", Chris: "Australia/Sydney", "Félix": "Pacific/Auckland", Jasper: "Pacific/Auckland" };
+var NZ = "Pacific/Auckland", CARACAS = "America/Caracas";
+var DAYS = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+var SHEET_ID = "1uJyy3Aeo1KpCGr1Bs_HVrH_btKUrcaXI";
+var ROSTER_GID = "650344370";
+
+// Fallback snapshot (week commencing, NZ Mondays) -> [primary, secondary].
+// Taken from the Google Sheet; only used when the live fetch fails.
+var SNAPSHOT = {"2026-08-03": ["Chris","Jasper"],"2026-08-10": ["Rohan","Chris"],"2026-08-17": ["Daniel","Rohan"],"2026-08-24": ["Félix","Daniel"],"2026-08-31": ["Jasper","Félix"],"2026-09-07": ["Chris","Jasper"],"2026-09-14": ["Chris","Chris"],"2026-09-21": ["Rohan","Chris"],"2026-09-28": ["Daniel","Rohan"],"2026-10-05": ["Félix","Daniel"],"2026-10-12": ["Jasper","Félix"],"2026-10-19": ["Chris","Jasper"],"2026-10-26": ["Rohan","Chris"],"2026-11-02": ["Daniel","Rohan"],"2026-11-09": ["Félix","Daniel"],"2026-11-16": ["Jasper","Félix"],"2026-11-23": ["Chris","Jasper"],"2026-11-30": ["Chris","Chris"],"2026-12-07": ["Rohan","Chris"],"2026-12-14": ["Daniel","Rohan"],"2026-12-21": ["Félix","Daniel"],"2026-12-28": ["Jasper","Félix"],"2027-01-04": ["Chris","Jasper"],"2027-01-11": ["Rohan","Chris"],"2027-01-18": ["Daniel","Rohan"],"2027-01-25": ["Félix","Daniel"],"2027-02-01": ["Jasper","Félix"],"2027-02-08": ["Chris","Jasper"],"2027-02-15": ["Chris","Chris"],"2027-02-22": ["Rohan","Chris"],"2027-03-01": ["Daniel","Rohan"],"2027-03-08": ["Félix","Daniel"],"2027-03-15": ["Jasper","Félix"],"2027-03-22": ["Chris","Jasper"],"2027-03-29": ["Rohan","Chris"],"2027-04-05": ["Daniel","Rohan"],"2027-04-12": ["Félix","Daniel"],"2027-04-19": ["Jasper","Félix"],"2027-04-26": ["Chris","Jasper"],"2027-05-03": ["Chris","Chris"],"2027-05-10": ["Rohan","Chris"],"2027-05-17": ["Daniel","Rohan"],"2027-05-24": ["Félix","Daniel"],"2027-05-31": ["Jasper","Félix"],"2027-06-07": ["Chris","Jasper"],"2027-06-14": ["Rohan","Chris"],"2027-06-21": ["Daniel","Rohan"],"2027-06-28": ["Félix","Daniel"],"2027-07-05": ["Jasper","Félix"],"2027-07-12": ["Chris","Jasper"],"2027-07-19": ["Chris","Chris"],"2027-07-26": ["Rohan","Chris"],"2027-08-02": ["Daniel","Rohan"],"2027-08-09": ["Félix","Daniel"],"2027-08-16": ["Jasper","Félix"],"2027-08-23": ["Chris","Jasper"],"2027-08-30": ["Rohan","Chris"],"2027-09-06": ["Daniel","Rohan"],"2027-09-13": ["Félix","Daniel"],"2027-09-20": ["Jasper","Félix"],"2027-09-27": ["Chris","Jasper"],"2027-10-04": ["Chris","Chris"],"2027-10-11": ["Rohan","Chris"],"2027-10-18": ["Daniel","Rohan"],"2027-10-25": ["Félix","Daniel"],"2027-11-01": ["Jasper","Félix"],"2027-11-08": ["Chris","Jasper"],"2027-11-15": ["Rohan","Chris"],"2027-11-22": ["Daniel","Rohan"],"2027-11-29": ["Félix","Daniel"],"2027-12-06": ["Jasper","Félix"],"2027-12-13": ["Chris","Jasper"],"2027-12-20": ["Chris","Chris"],"2027-12-27": ["Rohan","Chris"],"2028-01-03": ["Daniel","Rohan"],"2028-01-10": ["Félix","Daniel"],"2028-01-17": ["Jasper","Félix"],"2028-01-24": ["Chris","Jasper"],"2028-01-31": ["Rohan","Chris"],"2028-02-07": ["Daniel","Rohan"]};
+
+var liveRoster = null;       // set when the sheet fetch succeeds
+var liveFetchedAt = null;
+var liveError = null;
+function activeRoster() { return liveRoster || SNAPSHOT; }
+
+function canonName(n) {
+  if (n == null) return null;
+  var s = String(n).trim();
+  if (!s) return null;
+  if (s.normalize) s = s.normalize("NFC");
+  if (s === "Felix") s = "Félix";
+  return s;
+}
+function pad2(n) { return (n < 10 ? "0" : "") + n; }
+
+// Parse a Google Visualization (gviz) JSON response for the Roster tab:
+// header row holds "Date(y,m,d)" week-commencing cells; the rows labelled
+// "Primary Dev" / "Secondary Dev" hold the names, column-aligned with the dates.
+function parseGviz(text) {
+  var start = text.indexOf("(");
+  var end = text.lastIndexOf(")");
+  if (start < 0 || end <= start) throw new Error("unexpected response shape");
+  var json = JSON.parse(text.substring(start + 1, end));
+  if (!json.table || !json.table.rows || !json.table.rows.length) throw new Error("no table data");
+  var rows = json.table.rows;
+  var hdr = rows[0].c || [];
+  var prim = null, sec = null;
+  rows.forEach(function (r) {
+    var label = r.c && r.c[0] && r.c[0].v != null ? String(r.c[0].v).trim() : "";
+    if (label === "Primary Dev") prim = r.c;
+    if (label === "Secondary Dev") sec = r.c;
+  });
+  if (!prim) throw new Error("'Primary Dev' row not found");
+  var out = {};
+  for (var i = 1; i < hdr.length; i++) {
+    var cell = hdr[i];
+    if (!cell || cell.v == null) continue;
+    var m = /^Date\((\d+),(\d+),(\d+)/.exec(String(cell.v));
+    if (!m) continue;
+    var key = m[1] + "-" + pad2(+m[2] + 1) + "-" + pad2(+m[3]);
+    var p = canonName(prim[i] && prim[i].v);
+    var s = sec ? canonName(sec[i] && sec[i].v) : null;
+    if (p) out[key] = [p, s || ""];
+  }
+  if (!Object.keys(out).length) throw new Error("no dated roster columns found");
+  return out;
+}
+
+function fetchLiveRoster() {
+  var url = "https://docs.google.com/spreadsheets/d/" + SHEET_ID + "/gviz/tq?tqx=out:json&headers=0&gid=" + ROSTER_GID;
+  return fetch(url, { cache: "no-store" }).then(function (resp) {
+    if (!resp.ok) throw new Error("HTTP " + resp.status + (resp.status === 401 || resp.status === 403 ? " — sheet not shared for link access" : ""));
+    return resp.text();
+  }).then(function (text) {
+    liveRoster = parseGviz(text);
+    liveFetchedAt = new Date();
+    liveError = null;
+  }).catch(function (e) {
+    liveError = String(e && e.message ? e.message : e);
+  }).then(function () {
+    updateSourceBadges();
+    if (!userTouchedTopic) autoSelectTopic();
+    renderTopicButtons();
+    render();
+    renderRosterTable();
+  });
+}
+
+function updateSourceBadges() {
+  var b = document.getElementById("srcBadge");
+  var s = document.getElementById("rosterStatus");
+  if (liveRoster) {
+    b.className = "srcbadge live";
+    b.textContent = "roster: live from Google Sheet ✓";
+    s.className = "status-line live";
+    s.textContent = "Live from the Google Sheet, fetched " + liveFetchedAt.toLocaleTimeString() + " — edits in the sheet show up on the next refresh.";
+  } else {
+    b.className = "srcbadge snap";
+    b.textContent = "roster: built-in snapshot";
+    s.className = "status-line snap";
+    s.textContent = "Couldn't load the Google Sheet live" + (liveError ? " (" + liveError + ")" : "") + " — showing the snapshot baked into this page instead. To enable live loading: share the sheet as “anyone with the link can view” and make sure it's saved as a native Google Sheet (File → Save as Google Sheets), then refresh.";
+  }
+}
+
+// Week-commencing key (Monday) for the current NZ date.
+function rosterWeekKey(date) {
+  var fmt = new Intl.DateTimeFormat("en-CA", { timeZone: NZ, year: "numeric", month: "2-digit", day: "2-digit", weekday: "short" });
+  var p = {};
+  fmt.formatToParts(date).forEach(function (x) { p[x.type] = x.value; });
+  var dow = DAYS.indexOf(p.weekday);
+  var back = (dow + 6) % 7;
+  var d = new Date(Date.UTC(+p.year, +p.month - 1, +p.day));
+  d.setUTCDate(d.getUTCDate() - back);
+  return d.toISOString().slice(0, 10);
+}
+function rosterFor(date) { return activeRoster()[rosterWeekKey(date)] || null; }
+
+var userTouchedTopic = false;
+var state = { topic: "Daniel", secondary: "" };
+function autoSelectTopic() {
+  var r = rosterFor(new Date());
+  if (r && TZ[r[0]]) state.topic = r[0];
+}
+
+function partsIn(tz, date) {
+  var fmt = new Intl.DateTimeFormat("en-US", { timeZone: tz, weekday: "short", hour: "numeric", minute: "numeric", second: "numeric", hour12: false });
+  var p = {};
+  fmt.formatToParts(date).forEach(function (x) { p[x.type] = x.value; });
+  var h = parseInt(p.hour, 10) % 24;
+  return { weekday: p.weekday, mins: h * 60 + parseInt(p.minute, 10), h: h, m: parseInt(p.minute, 10) };
+}
+function fmtClock(tz, date) {
+  var t = new Intl.DateTimeFormat("en-NZ", { timeZone: tz, hour: "numeric", minute: "2-digit", hour12: true }).format(date);
+  var d = new Intl.DateTimeFormat("en-NZ", { timeZone: tz, weekday: "short", day: "numeric", month: "short" }).format(date);
+  return { t: t, d: d };
+}
+var IN_START = 9 * 60, IN_END = 17 * 60 + 30; // 9:00 .. 17:30
+function inHours(mins) { return mins >= IN_START && mins < IN_END; }
+function prevDay(wd) { return DAYS[(DAYS.indexOf(wd) + 6) % 7]; }
+
+// Pure decision function — also exercised by the test harness.
+function decide(topic, date) {
+  var nz = partsIn(NZ, date);
+  var primary = topic, override = null;
+  if (topic === "Daniel" && !inHours(nz.mins)) {
+    var nightOf = nz.mins < IN_START ? prevDay(nz.weekday) : nz.weekday; // pre-9am belongs to the previous day's night
+    primary = (nightOf === "Mon" || nightOf === "Tue") ? "Rohan" : "Edwin";
+    override = "The topic says Daniel, but it's outside 9:00am–5:30pm NZ time (" + nightOf + " night) → " + primary + " covers.";
+  }
+  var ptz = TZ[primary] || NZ;
+  var p = partsIn(ptz, date);
+  var cc = partsIn(CARACAS, date);
+  var ladder;
+  if (inHours(p.mins)) ladder = "A";
+  else if (cc.mins >= IN_START) ladder = "B";
+  else ladder = "C";
+  return { primary: primary, ptz: ptz, override: override, ladder: ladder, pMins: p.mins, ccMins: cc.mins };
+}
+
+function ladderSteps(which, primary, secondary) {
+  var sec = secondary ? secondary : "the secondary on call (see the Roster tab)";
+  if (which === "A") return [
+    "Tag <b>@devoncall</b> in the thread.",
+    "No answer? Direct-message <b>" + primary + "</b> on Slack.",
+    "Still no answer? Tag <b>@devoncall</b> again, explicitly asking for the secondary" + (secondary ? " (<b>" + sec + "</b>)" : "") + "."
+  ];
+  if (which === "B") return [
+    "Tag <b>Emilio</b> in the thread and message him on <b>WhatsApp</b>.",
+    "No answer? <b>Double call Emilio</b> (twice in a row).",
+    "No answer? Tag and WhatsApp <b>" + primary + "</b>.",
+    "No answer? <b>Double call " + primary + "</b>.",
+    "No answer? WhatsApp <b>" + sec + "</b>.",
+    "No answer? <b>Double call " + sec + "</b>."
+  ];
+  return [
+    "Tag and WhatsApp <b>" + primary + "</b>.",
+    "No answer? <b>Double call " + primary + "</b>.",
+    "No answer? WhatsApp <b>" + sec + "</b>.",
+    "No answer? <b>Double call " + sec + "</b>."
+  ];
+}
+var LADDER_TITLES = { A: "In hours for the primary (9:00am–5:30pm their time)", B: "Primary's night, Venezuela awake (Caracas ≥ 9:00am) — go through Emilio", C: "Night for everyone (before 9:00am in Caracas)" };
+
+function firstContact(which, primary) { return which === "B" ? "Emilio (then " + primary + ")" : primary; }
+
+function effectiveSecondary(now) {
+  if (state.secondary.trim()) return state.secondary.trim();
+  var r = rosterFor(now);
+  return r && r[1] ? r[1] : "";
+}
+
+function render() {
+  var now = new Date();
+  var r = rosterFor(now), wk = rosterWeekKey(now);
+  var rl = document.getElementById("rosterLine");
+  if (r) {
+    var mism = state.topic !== r[0] ? ' <span style="color:var(--amber)">— you picked ' + state.topic + ', which differs from the roster; the topic wins, but double-check it’s current.</span>' : "";
+    rl.innerHTML = "Roster for the week of " + wk + ": primary <b>" + r[0] + "</b>, secondary <b>" + r[1] + "</b>." + mism;
+  } else {
+    rl.innerHTML = '<span style="color:var(--amber)">The roster has no entry for this week (' + wk + ") — check the sheet.</span>";
+  }
+  document.getElementById("secondaryHint").textContent = state.secondary.trim() ? "(manual override)" : (r && r[1] ? "auto: " + r[1] + " (roster)" : "");
+
+  var zones = [["New Zealand", NZ], ["Sydney", "Australia/Sydney"], ["Caracas", CARACAS], ["Your time", Intl.DateTimeFormat().resolvedOptions().timeZone]];
+  document.getElementById("clocks").innerHTML = zones.map(function (z) {
+    var c = fmtClock(z[1], now);
+    return '<div class="clock"><div class="place">' + z[0] + '</div><div class="time">' + c.t + '</div><div class="day">' + c.d + "</div></div>";
+  }).join("");
+
+  var d = decide(state.topic, now);
+  document.getElementById("primaryName").textContent = d.primary;
+  var badge = document.getElementById("statusBadge");
+  if (d.ladder === "A") { badge.className = "badge day"; badge.textContent = "in hours — ladder A"; }
+  else { badge.className = "badge night"; badge.textContent = (d.ladder === "B" ? "after hours — ladder B (via Emilio)" : "after hours — ladder C"); }
+
+  var on = document.getElementById("overrideNote");
+  if (d.override) { on.style.display = ""; on.textContent = d.override; } else { on.style.display = "none"; }
+
+  var pc = fmtClock(d.ptz, now), cc = fmtClock(CARACAS, now);
+  document.getElementById("timesLine").innerHTML = "It's <b>" + pc.t + " " + pc.d + "</b> for " + d.primary + " and <b>" + cc.t + " " + cc.d + "</b> in Caracas.";
+
+  var sec = effectiveSecondary(now);
+  var steps = ladderSteps(d.ladder, d.primary, sec);
+  document.getElementById("firstAction").innerHTML = "<b>First:</b> " + steps[0] + "<br><span style='font-size:0.88rem;color:var(--muted)'>First contact: " + firstContact(d.ladder, d.primary) + "</span>";
+  document.getElementById("ladder").innerHTML = steps.map(function (s) { return "<li>" + s + "</li>"; }).join("");
+
+  document.getElementById("altLadders").innerHTML = ["A", "B", "C"].filter(function (w) { return w !== d.ladder; }).map(function (w) {
+    return '<div class="alt"><h3>Ladder ' + w + " — " + LADDER_TITLES[w] + "</h3><ol>" + ladderSteps(w, d.primary, sec).map(function (s) { return "<li>" + s + "</li>"; }).join("") + "</ol></div>";
+  }).join("");
+}
+
+function renderTopicButtons() {
+  var names = ["Daniel", "Rohan", "Edwin", "Chris", "Félix", "Jasper"];
+  var r = rosterFor(new Date());
+  if (r && r[0] && names.indexOf(r[0]) < 0) names.push(r[0]); // roster names outside the usual six still get a button
+  var host = document.getElementById("topicButtons");
+  host.innerHTML = "";
+  names.forEach(function (n) {
+    var b = document.createElement("button");
+    b.textContent = n;
+    if (state.topic === n) b.className = "sel";
+    b.onclick = function () { userTouchedTopic = true; state.topic = n; renderTopicButtons(); render(); };
+    host.appendChild(b);
+  });
+}
+
+function renderRosterTable() {
+  var roster = activeRoster();
+  var nowKey = rosterWeekKey(new Date());
+  var keys = Object.keys(roster).sort();
+  // show 4 past weeks plus everything from this week on
+  var startIdx = 0;
+  for (var i = 0; i < keys.length; i++) { if (keys[i] >= nowKey) { startIdx = Math.max(0, i - 4); break; } startIdx = Math.max(0, keys.length - 4); }
+  var rows = keys.slice(startIdx).map(function (k) {
+    var cls = k === nowKey ? "now" : (k < nowKey ? "past" : "");
+    var dt = new Date(k + "T00:00:00Z");
+    var label = new Intl.DateTimeFormat("en-NZ", { timeZone: "UTC", weekday: "short", day: "numeric", month: "short", year: "numeric" }).format(dt);
+    return '<tr class="' + cls + '"><td>' + label + "</td><td>" + roster[k][0] + "</td><td>" + (roster[k][1] || "—") + "</td></tr>";
+  });
+  document.getElementById("rosterBody").innerHTML = rows.join("") || '<tr><td colspan="3">No roster data.</td></tr>';
+}
+
+function showTab(which) {
+  document.getElementById("routerView").style.display = which === "router" ? "" : "none";
+  document.getElementById("rosterView").style.display = which === "roster" ? "" : "none";
+  document.getElementById("tabRouter").className = which === "router" ? "active" : "";
+  document.getElementById("tabRoster").className = which === "roster" ? "active" : "";
+  if (which === "roster") renderRosterTable();
+}
+document.getElementById("tabRouter").onclick = function () { showTab("router"); };
+document.getElementById("tabRoster").onclick = function () { showTab("roster"); };
+
+document.getElementById("secondary").addEventListener("input", function (e) { state.secondary = e.target.value; render(); });
+
+autoSelectTopic();
+renderTopicButtons();
+render();
+renderRosterTable();
+updateSourceBadges();
+fetchLiveRoster();
+setInterval(render, 1000);
+</script>
+</body>
+</html>
