@@ -285,25 +285,38 @@ function decide(topic, date) {
 
 function ladderSteps(which, primary, secondary) {
   var sec = secondary ? secondary : "the secondary on call (see the Roster tab)";
-  if (which === "A") return [
-    "Tag <b>@devoncall</b> in the thread.",
-    "No answer? Direct-message <b>" + primary + "</b> on Slack.",
-    "Still no answer? Tag <b>@devoncall</b> again, explicitly asking for the secondary" + (secondary ? " (<b>" + sec + "</b>)" : "") + "."
-  ];
-  if (which === "B") return [
-    "Tag <b>Emilio</b> in the thread and message him on <b>WhatsApp</b>.",
-    "No answer? <b>Double call Emilio</b> (twice in a row).",
-    "No answer? Tag and WhatsApp <b>" + primary + "</b>.",
-    "No answer? <b>Double call " + primary + "</b>.",
-    "No answer? WhatsApp <b>" + sec + "</b>.",
-    "No answer? <b>Double call " + sec + "</b>."
-  ];
-  return [
-    "Tag and WhatsApp <b>" + primary + "</b>.",
-    "No answer? <b>Double call " + primary + "</b>.",
-    "No answer? WhatsApp <b>" + sec + "</b>.",
-    "No answer? <b>Double call " + sec + "</b>."
-  ];
+  // Edwin is the standing "backup of the backup". The secondary isn't expected
+  // to make themselves available, so if they don't answer, go straight to Edwin.
+  // Skip the extra step when Edwin is already the primary — there's no one after him.
+  var edwinIsPrimary = /edwin/i.test(primary);
+  var steps;
+  if (which === "A") {
+    steps = [
+      "Tag <b>@devoncall</b> in the thread.",
+      "No answer? Direct-message <b>" + primary + "</b> on Slack.",
+      "Still no answer? Tag <b>@devoncall</b> again, explicitly asking for the secondary" + (secondary ? " (<b>" + sec + "</b>)" : "") + ". (They're not expected to be available — don't wait long.)"
+    ];
+    if (!edwinIsPrimary) steps.push("Still no answer? Tag and direct-message <b>Edwin</b> — the final fallback.");
+  } else if (which === "B") {
+    steps = [
+      "Tag <b>Emilio</b> in the thread and message him on <b>WhatsApp</b>.",
+      "No answer? <b>Double call Emilio</b> (twice in a row).",
+      "No answer? Tag and WhatsApp <b>" + primary + "</b>.",
+      "No answer? <b>Double call " + primary + "</b>.",
+      "No answer? WhatsApp <b>" + sec + "</b>. (They're not expected to be available — don't wait long.)",
+      "No answer? <b>Double call " + sec + "</b>."
+    ];
+    if (!edwinIsPrimary) steps.push("No answer? WhatsApp and <b>double call Edwin</b> — the final fallback.");
+  } else {
+    steps = [
+      "Tag and WhatsApp <b>" + primary + "</b>.",
+      "No answer? <b>Double call " + primary + "</b>.",
+      "No answer? WhatsApp <b>" + sec + "</b>. (They're not expected to be available — don't wait long.)",
+      "No answer? <b>Double call " + sec + "</b>."
+    ];
+    if (!edwinIsPrimary) steps.push("No answer? WhatsApp and <b>double call Edwin</b> — the final fallback.");
+  }
+  return steps;
 }
 var LADDER_TITLES = { A: "In hours for the primary (9:00am–5:30pm their time)", B: "Primary's night, Venezuela awake (Caracas ≥ 9:00am) — go through Emilio", C: "Night for everyone (before 9:00am in Caracas)" };
 
