@@ -114,7 +114,7 @@
         <thead><tr><th>Week commencing (NZ Monday)</th><th>Primary dev</th><th>Secondary dev</th></tr></thead>
         <tbody id="rosterBody"></tbody>
       </table>
-      <p class="hint">Maintained in the <a href="https://docs.google.com/spreadsheets/d/1BaUDiIavSC0oQHjoJ2sOQ9GnHNPtjlwTa5rZuHveHPw/edit?gid=1141900340#gid=1141900340" id="sheetLink">Google Sheet</a> (Roster tab, Primary Dev / Secondary Dev rows). When live loading works, edits there appear here on the next page refresh — no need to touch this page.</p>
+      <p class="hint">Maintained in the <a href="https://docs.google.com/spreadsheets/d/1BaUDiIavSC0oQHjoJ2sOQ9GnHNPtjlwTa5rZuHveHPw/edit" id="sheetLink">Google Sheet</a> (Roster tab, Primary Dev / Secondary Dev rows). When live loading works, edits there appear here on the next page refresh — no need to touch this page.</p>
     </div>
   </div>
 </div>
@@ -128,7 +128,7 @@
     <li><b>Ladder C (night for everyone):</b> out of hours for the primary and before 9:00am in Caracas.</li>
     <li>"Double call" = phone twice in a row so the second call breaks through do-not-disturb.</li>
     <li>Timezones: Daniel, Edwin, F&eacute;lix &amp; Jasper — Auckland; Rohan &amp; Chris — Sydney; Emilio — Caracas. DST is handled automatically. The Daniel after-hours override only applies when Daniel is primary.</li>
-    <li><b>Roster source:</b> the page fetches the Google Sheet live on every load (needs the sheet shared as "anyone with the link can view" and saved as a native Google Sheet). If that fails, it falls back to a snapshot baked into this page (weeks of 3 Aug 2026 &ndash; 7 Feb 2028) and says so in the badge at the top.</li>
+    <li><b>Roster source:</b> the page fetches the Google Sheet live on every load (needs the sheet shared as "anyone with the link can view" and saved as a native Google Sheet). If that fails, it falls back to a snapshot baked into this page (weeks of 3 Aug 2026 &ndash; 31 Jan 2028) and says so in the badge at the top.</li>
   </ul>
 </footer>
 
@@ -138,11 +138,11 @@ var TZ = { Daniel: "Pacific/Auckland", Rohan: "Australia/Sydney", Edwin: "Pacifi
 var NZ = "Pacific/Auckland", CARACAS = "America/Caracas";
 var DAYS = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
 var SHEET_ID = "1BaUDiIavSC0oQHjoJ2sOQ9GnHNPtjlwTa5rZuHveHPw";
-var ROSTER_GID = "1141900340";
+var ROSTER_SHEET = "Roster"; // tab name (used instead of a gid so tabs can be reordered freely)
 
 // Fallback snapshot (week commencing, NZ Mondays) -> [primary, secondary].
 // Taken from the Google Sheet; only used when the live fetch fails.
-var SNAPSHOT = {"2026-08-03": ["Chris","Jasper"],"2026-08-10": ["Rohan","Chris"],"2026-08-17": ["Daniel","Rohan"],"2026-08-24": ["Félix","Daniel"],"2026-08-31": ["Jasper","Félix"],"2026-09-07": ["Chris","Jasper"],"2026-09-14": ["Chris","Chris"],"2026-09-21": ["Rohan","Chris"],"2026-09-28": ["Daniel","Rohan"],"2026-10-05": ["Félix","Daniel"],"2026-10-12": ["Jasper","Félix"],"2026-10-19": ["Chris","Jasper"],"2026-10-26": ["Rohan","Chris"],"2026-11-02": ["Daniel","Rohan"],"2026-11-09": ["Félix","Daniel"],"2026-11-16": ["Jasper","Félix"],"2026-11-23": ["Chris","Jasper"],"2026-11-30": ["Chris","Chris"],"2026-12-07": ["Rohan","Chris"],"2026-12-14": ["Daniel","Rohan"],"2026-12-21": ["Félix","Daniel"],"2026-12-28": ["Jasper","Félix"],"2027-01-04": ["Chris","Jasper"],"2027-01-11": ["Rohan","Chris"],"2027-01-18": ["Daniel","Rohan"],"2027-01-25": ["Félix","Daniel"],"2027-02-01": ["Jasper","Félix"],"2027-02-08": ["Chris","Jasper"],"2027-02-15": ["Chris","Chris"],"2027-02-22": ["Rohan","Chris"],"2027-03-01": ["Daniel","Rohan"],"2027-03-08": ["Félix","Daniel"],"2027-03-15": ["Jasper","Félix"],"2027-03-22": ["Chris","Jasper"],"2027-03-29": ["Rohan","Chris"],"2027-04-05": ["Daniel","Rohan"],"2027-04-12": ["Félix","Daniel"],"2027-04-19": ["Jasper","Félix"],"2027-04-26": ["Chris","Jasper"],"2027-05-03": ["Chris","Chris"],"2027-05-10": ["Rohan","Chris"],"2027-05-17": ["Daniel","Rohan"],"2027-05-24": ["Félix","Daniel"],"2027-05-31": ["Jasper","Félix"],"2027-06-07": ["Chris","Jasper"],"2027-06-14": ["Rohan","Chris"],"2027-06-21": ["Daniel","Rohan"],"2027-06-28": ["Félix","Daniel"],"2027-07-05": ["Jasper","Félix"],"2027-07-12": ["Chris","Jasper"],"2027-07-19": ["Chris","Chris"],"2027-07-26": ["Rohan","Chris"],"2027-08-02": ["Daniel","Rohan"],"2027-08-09": ["Félix","Daniel"],"2027-08-16": ["Jasper","Félix"],"2027-08-23": ["Chris","Jasper"],"2027-08-30": ["Rohan","Chris"],"2027-09-06": ["Daniel","Rohan"],"2027-09-13": ["Félix","Daniel"],"2027-09-20": ["Jasper","Félix"],"2027-09-27": ["Chris","Jasper"],"2027-10-04": ["Chris","Chris"],"2027-10-11": ["Rohan","Chris"],"2027-10-18": ["Daniel","Rohan"],"2027-10-25": ["Félix","Daniel"],"2027-11-01": ["Jasper","Félix"],"2027-11-08": ["Chris","Jasper"],"2027-11-15": ["Rohan","Chris"],"2027-11-22": ["Daniel","Rohan"],"2027-11-29": ["Félix","Daniel"],"2027-12-06": ["Jasper","Félix"],"2027-12-13": ["Chris","Jasper"],"2027-12-20": ["Chris","Chris"],"2027-12-27": ["Rohan","Chris"],"2028-01-03": ["Daniel","Rohan"],"2028-01-10": ["Félix","Daniel"],"2028-01-17": ["Jasper","Félix"],"2028-01-24": ["Chris","Jasper"],"2028-01-31": ["Rohan","Chris"],"2028-02-07": ["Daniel","Rohan"]};
+var SNAPSHOT = {"2026-08-03":["Chris","Jasper"],"2026-08-10":["Rohan","Chris"],"2026-08-17":["Daniel","Rohan"],"2026-08-24":["Félix","Daniel"],"2026-08-31":["Jasper","Félix"],"2026-09-07":["Chris","Jasper"],"2026-09-14":["Rohan","Chris"],"2026-09-21":["Daniel","Rohan"],"2026-09-28":["Félix","Daniel"],"2026-10-05":["Jasper","Félix"],"2026-10-12":["Chris","Jasper"],"2026-10-19":["Rohan","Chris"],"2026-10-26":["Daniel","Rohan"],"2026-11-02":["Félix","Daniel"],"2026-11-09":["Jasper","Félix"],"2026-11-16":["Chris","Jasper"],"2026-11-23":["Chris","Chris"],"2026-11-30":["Rohan","Chris"],"2026-12-07":["Daniel","Rohan"],"2026-12-14":["Félix","Daniel"],"2026-12-21":["Jasper","Félix"],"2026-12-28":["Chris","Jasper"],"2027-01-04":["Rohan","Chris"],"2027-01-11":["Daniel","Rohan"],"2027-01-18":["Félix","Daniel"],"2027-01-25":["Jasper","Félix"],"2027-02-01":["Chris","Jasper"],"2027-02-08":["Chris","Chris"],"2027-02-15":["Rohan","Chris"],"2027-02-22":["Daniel","Rohan"],"2027-03-01":["Félix","Daniel"],"2027-03-08":["Jasper","Félix"],"2027-03-15":["Chris","Jasper"],"2027-03-22":["Rohan","Chris"],"2027-03-29":["Daniel","Rohan"],"2027-04-05":["Félix","Daniel"],"2027-04-12":["Jasper","Félix"],"2027-04-19":["Chris","Jasper"],"2027-04-26":["Chris","Chris"],"2027-05-03":["Rohan","Chris"],"2027-05-10":["Daniel","Rohan"],"2027-05-17":["Félix","Daniel"],"2027-05-24":["Jasper","Félix"],"2027-05-31":["Chris","Jasper"],"2027-06-07":["Rohan","Chris"],"2027-06-14":["Daniel","Rohan"],"2027-06-21":["Félix","Daniel"],"2027-06-28":["Jasper","Félix"],"2027-07-05":["Chris","Jasper"],"2027-07-12":["Chris","Chris"],"2027-07-19":["Rohan","Chris"],"2027-07-26":["Daniel","Rohan"],"2027-08-02":["Félix","Daniel"],"2027-08-09":["Jasper","Félix"],"2027-08-16":["Chris","Jasper"],"2027-08-23":["Rohan","Chris"],"2027-08-30":["Daniel","Rohan"],"2027-09-06":["Félix","Daniel"],"2027-09-13":["Jasper","Félix"],"2027-09-20":["Chris","Jasper"],"2027-09-27":["Chris","Chris"],"2027-10-04":["Rohan","Chris"],"2027-10-11":["Daniel","Rohan"],"2027-10-18":["Félix","Daniel"],"2027-10-25":["Jasper","Félix"],"2027-11-01":["Chris","Jasper"],"2027-11-08":["Rohan","Chris"],"2027-11-15":["Daniel","Rohan"],"2027-11-22":["Félix","Daniel"],"2027-11-29":["Jasper","Félix"],"2027-12-06":["Chris","Jasper"],"2027-12-13":["Chris","Chris"],"2027-12-20":["Rohan","Chris"],"2027-12-27":["Daniel","Rohan"],"2028-01-03":["Félix","Daniel"],"2028-01-10":["Jasper","Félix"],"2028-01-17":["Chris","Jasper"],"2028-01-24":["Rohan","Chris"],"2028-01-31":["Daniel","Rohan"]};
 
 var liveRoster = null;       // set when the sheet fetch succeeds
 var liveFetchedAt = null;
@@ -159,9 +159,45 @@ function canonName(n) {
 }
 function pad2(n) { return (n < 10 ? "0" : "") + n; }
 
-// Parse a Google Visualization (gviz) JSON response for the Roster tab:
-// header row holds "Date(y,m,d)" week-commencing cells; the rows labelled
-// "Primary Dev" / "Secondary Dev" hold the names, column-aligned with the dates.
+// Parse a Google Visualization (gviz) JSON response for the Roster tab.
+// Row 1 holds the week-commencing headers, either as real dates ("Date(y,m,d)")
+// or as text like "Sep-21" (no year). The rows whose first cell is
+// "Primary Dev" / "Secondary Dev" hold the names, column-aligned with the headers.
+var MONTHS = { jan:0, feb:1, mar:2, apr:3, may:4, jun:5, jul:6, aug:7, sep:8, oct:9, nov:10, dec:11 };
+
+// Turn the header cells into "YYYY-MM-DD" keys. Text headers carry no year, so
+// years are assigned by rollover (month going backwards = next year), and the
+// starting year is chosen so that as many headers as possible land on a Monday.
+function headerKeys(hdr) {
+  var parsed = [];
+  for (var i = 0; i < hdr.length; i++) {
+    var cell = hdr[i], v = cell && cell.v != null ? String(cell.v).trim() : "";
+    var m = /^Date\((\d+),(\d+),(\d+)/.exec(v);
+    if (m) { parsed.push({ i: i, key: m[1] + "-" + pad2(+m[2] + 1) + "-" + pad2(+m[3]) }); continue; }
+    var t = /^([A-Za-z]{3})[-\s]*(\d{1,2})$/.exec(v);
+    if (t && MONTHS[t[1].toLowerCase()] != null) parsed.push({ i: i, mon: MONTHS[t[1].toLowerCase()], day: +t[2] });
+  }
+  var textual = parsed.filter(function (p) { return p.key == null; });
+  if (textual.length) {
+    var thisYear = new Date().getFullYear(), best = null;
+    for (var start = thisYear - 4; start <= thisYear + 1; start++) {
+      var y = start, last = -1, mondays = 0, keys = [];
+      textual.forEach(function (p) {
+        if (p.mon < last) y++;
+        last = p.mon;
+        var d = new Date(Date.UTC(y, p.mon, p.day));
+        if (d.getUTCDay() === 1) mondays++;
+        keys.push(y + "-" + pad2(p.mon + 1) + "-" + pad2(p.day));
+      });
+      if (!best || mondays > best.mondays) best = { mondays: mondays, keys: keys };
+    }
+    textual.forEach(function (p, n) { p.key = best.keys[n]; });
+  }
+  var out = {};
+  parsed.forEach(function (p) { out[p.i] = p.key; });
+  return out;
+}
+
 function parseGviz(text) {
   var start = text.indexOf("(");
   var end = text.lastIndexOf(")");
@@ -177,13 +213,11 @@ function parseGviz(text) {
     if (label === "Secondary Dev") sec = r.c;
   });
   if (!prim) throw new Error("'Primary Dev' row not found");
+  var keys = headerKeys(hdr);
   var out = {};
   for (var i = 1; i < hdr.length; i++) {
-    var cell = hdr[i];
-    if (!cell || cell.v == null) continue;
-    var m = /^Date\((\d+),(\d+),(\d+)/.exec(String(cell.v));
-    if (!m) continue;
-    var key = m[1] + "-" + pad2(+m[2] + 1) + "-" + pad2(+m[3]);
+    var key = keys[i];
+    if (!key) continue;
     var p = canonName(prim[i] && prim[i].v);
     var s = sec ? canonName(sec[i] && sec[i].v) : null;
     if (p) out[key] = [p, s || ""];
@@ -193,7 +227,7 @@ function parseGviz(text) {
 }
 
 function fetchLiveRoster() {
-  var url = "https://docs.google.com/spreadsheets/d/" + SHEET_ID + "/gviz/tq?tqx=out:json&headers=0&gid=" + ROSTER_GID;
+  var url = "https://docs.google.com/spreadsheets/d/" + SHEET_ID + "/gviz/tq?tqx=out:json&headers=0&sheet=" + encodeURIComponent(ROSTER_SHEET);
   return fetch(url, { cache: "no-store" }).then(function (resp) {
     if (!resp.ok) throw new Error("HTTP " + resp.status + (resp.status === 401 || resp.status === 403 ? " — sheet not shared for link access" : ""));
     return resp.text();
